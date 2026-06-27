@@ -1,5 +1,26 @@
 # Deploying a Multi-Container Application with Docker Compose (PUKU CLI)
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Learning Objectives](#learning-objectives)
+- [Prologue: The Challenge](#prologue-the-challenge)
+- [Environment Setup](#environment-setup)
+- [Chapters](#chapters)
+  - [Chapter 1: Docker Compose Component](#chapter-1-docker-compose-component)
+  - [Chapter 2: Docker Network](#chapter-2-docker-network)
+  - [Chapter 3: Docker Volume](#chapter-3-docker-volume)
+  - [Chapter 4: Application Components](#chapter-4-application-components)
+  - [Chapter 5: Complete Application Workflow](#chapter-5-complete-application-workflow)
+  - [Chapter 6: Deployment and Automation using PUKU CLI](#chapter-6-deployment-and-automation-using-puku-cli)
+  - [Chapter 7: Verifying the End-to-End Behaviour](#chapter-7-verifying-the-end-to-end-behaviour)
+  - [Chapter 8: The Request Lifecycle](#chapter-8-the-request-lifecycle)
+- [Epilogue: The Complete System](#epilogue-the-complete-system)
+- [The Principles](#the-principles)
+- [Troubleshooting](#troubleshooting)
+- [Next Steps](#next-steps)
+- [Additional Resources](#additional-resources)
+
 ## Introduction
 
 This lab will deploy a small but **real** multi-container application: a Flask web front-end that talks to a Redis back-end. The two services run in **separate containers**, are joined by a **user-defined Docker network**, and Redis's data is held on a **named Docker volume** ensuring visit counter survives restarts. Described declaratively in a single `compose.yaml` file, and the whole stack is brought up with one command.
