@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!-- ============================================================
+       Poridhi multi-container architecture (animated)
+       Open images/architecture.html in a browser for the animated
+       version (CSS-animated dashed strokes on the data arrows).
+       ============================================================ -->
+
+  <defs>
+    <!-- Reusable arrowhead -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+
+    <!-- Soft drop shadow for cards -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+
+    <!-- Animated dash pattern for the "flow" arrows -->
+    <style>
+      .flow        { stroke-dasharray: 8 6; animation: flow 1.4s linear infinite; }
+      .flow-slow   { stroke-dasharray: 8 6; animation: flow 2.4s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -28; } }
+      .label       { fill: #475569; font-size: 13px; font-weight: 600; }
+      .sub         { fill: #64748b; font-size: 11px; }
+      .title       { fill: #0f172a; font-size: 16px; font-weight: 700; }
+      .tag         { fill: #1e40af; font-size: 11px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="760" height="520" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="380" y="34" text-anchor="middle" class="title">Poridhi Multi-Container Architecture</text>
+  <text x="380" y="52" text-anchor="middle" class="sub">Browser → Flask web → Redis → named volume</text>
+
+  <!-- ============== ROW 1: Browser ============== -->
+  <g filter="url(#shadow)">
+    <rect x="40"  y="90" width="200" height="70" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="140" y="118" text-anchor="middle" class="title">Browser</text>
+    <text x="140" y="140" text-anchor="middle" class="sub">http://localhost:5000</text>
+  </g>
+
+  <!-- ============== ROW 2: Flask web ============== -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="90" width="380" height="70" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="340" y="90" width="6"   height="70" rx="3"  fill="#2563eb"/>
+    <text x="360" y="118" class="tag">SERVICE</text>
+    <text x="405" y="118" class="title">web · poridhi-web</text>
+    <text x="360" y="140" class="sub">Flask + redis-py · host:5000 → container:80</text>
+  </g>
+
+  <!-- ============== ROW 3: Redis ============== -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="230" width="380" height="70" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="340" y="230" width="6"   height="70" rx="3" fill="#dc2626"/>
+    <text x="360" y="258" class="tag">SERVICE</text>
+    <text x="405" y="258" class="title">redis · poridhi-redis</text>
+    <text x="360" y="280" class="sub">redis:7-alpine · TCP 6379 · AOF → /data</text>
+  </g>
+
+  <!-- ============== ROW 4: Named volume ============== -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="370" width="380" height="70" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="340" y="370" width="6"   height="70" rx="3"  fill="#059669"/>
+    <text x="360" y="398" class="tag">VOLUME</text>
+    <text x="420" y="398" class="title">poridhi-redis-data</text>
+    <text x="360" y="420" class="sub">Named volume · mounted at /data · persists across restarts</text>
+  </g>
+
+  <!-- ============== ARROWS ============== -->
+  <!-- Browser → web (HTTP) -->
+  <line x1="240" y1="125" x2="338" y2="125"
+        stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="289" y="118" text-anchor="middle" class="label">HTTP</text>
+  <text x="289" y="146" text-anchor="middle" class="sub">host:5000 → web:80</text>
+
+  <!-- web → redis (animated TCP) -->
+  <line x1="530" y1="160" x2="530" y2="228"
+        stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"
+        class="flow"/>
+  <text x="545" y="190" class="label">TCP 6379</text>
+  <text x="545" y="206" class="sub">DNS "redis" → poridhi-redis</text>
+
+  <!-- redis → volume (animated AOF) -->
+  <line x1="530" y1="300" x2="530" y2="368"
+        stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"
+        class="flow-slow"/>
+  <text x="545" y="330" class="label">AOF write</text>
+  <text x="545" y="346" class="sub">bind mount (managed)</text>
+
+  <!-- ============== NETWORK BADGE ============== -->
+  <g>
+    <rect x="40" y="230" width="200" height="70" rx="10" fill="#eef2ff" stroke="#a5b4fc"/>
+    <text x="140" y="258" text-anchor="middle" class="title" fill="#3730a3">poridhi-net</text>
+    <text x="140" y="280" text-anchor="middle" class="sub">User-defined bridge · DNS service discovery</text>
+  </g>
+
+  <!-- Dashed connector from network badge to web and redis (shows membership) -->
+  <line x1="240" y1="265" x2="338" y2="125"
+        stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="240" y1="265" x2="338" y2="265"
+        stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="4 4"/>
+</svg>

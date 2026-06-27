@@ -1,0 +1,43 @@
+services:
+  web:
+    # Build the image from the local Dockerfile in this directory
+    build: .
+    # Tag the locally-built image with a stable name
+    image: poridhi-flask:latest
+    container_name: poridhi-web
+    # Publish host:5000 → container:80 so we can hit it from the browser
+    ports:
+      - "5000:80"
+    # Injected into the Flask process as environment variables
+    environment:
+      - NAME=Poridhi Intern
+    # Attach to the user-defined bridge network below
+    networks:
+      - app-net
+    # Start order only — does NOT wait for Redis to be ready
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: poridhi-redis
+    networks:
+      - app-net
+    # Named volume (declared below) mounted at Redis's data dir
+    volumes:
+      - redis-data:/data
+    # Append-Only File persistence: every write is logged for durability
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+
+networks:
+  app-net:
+    driver: bridge
+    # Stable external name so other tools can refer to it
+    name: poridhi-net
+
+volumes:
+  redis-data:
+    # Stable external name; data survives `puku down` (but not `--volumes`)
+    name: poridhi-redis-data

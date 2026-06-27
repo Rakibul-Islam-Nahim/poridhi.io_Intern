@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Poridhi Architecture (Animated)</title>
+  <style>
+    :root { --ink:#0f172a; --muted:#64748b; --line:#475569; --blue:#2563eb; --green:#059669; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%);
+      font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+      color:var(--ink);
+      padding:32px;
+    }
+    h1   { margin:0 0 4px; font-size:22px; }
+    p.sub{ margin:0 0 24px; color:var(--muted); font-size:13px; }
+
+    .diagram {
+      position:relative;
+      width:760px; height:520px;
+      background:#ffffff;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(15,23,42,.08);
+      overflow:hidden;
+    }
+    .card {
+      position:absolute;
+      width:380px; height:70px;
+      border-radius:10px;
+      background:#ffffff;
+      border:1px solid #cbd5e1;
+      padding:10px 14px;
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    .card .tag   { font-size:11px; font-weight:700; color:#1e40af; letter-spacing:.5px; }
+    .card .title { font-size:16px; font-weight:700; margin-top:2px; }
+    .card .sub   { font-size:11px; color:var(--muted); margin-top:2px; }
+    .card .bar   { position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:6px 0 0 6px; }
+
+    .b-browser { left:40px;  top:90px;  width:200px; }
+    .b-web     { left:340px; top:90px; }
+    .b-redis   { left:340px; top:230px; }
+    .b-vol     { left:340px; top:370px; }
+    .b-net     { left:40px;  top:230px; width:200px; background:#eef2ff; border-color:#a5b4fc; }
+    .b-net .title { color:#3730a3; }
+
+    .bar-blue  { background:var(--blue); }
+    .bar-red   { background:#dc2626; }
+    .bar-green { background:var(--green); }
+    .bar-indigo{ background:#6366f1; }
+
+    /* Animated dashed arrows implemented as SVG overlay */
+    svg.arrows { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    /* Make the dashed strokes appear to flow */
+    .flow      { stroke-dasharray:8 6; animation:flow 1.4s linear infinite; }
+    .flow-slow { stroke-dasharray:8 6; animation:flow 2.4s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset:-28; } }
+
+    .legend {
+      display:flex; gap:18px; flex-wrap:wrap; margin-top:18px;
+      font-size:12px; color:var(--muted);
+    }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .swatch { width:18px; height:3px; border-radius:2px; }
+
+    /* Pulse on the volume card to emphasise persistence */
+    @keyframes pulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(5,150,105,.35); }
+      50%     { box-shadow:0 0 0 8px rgba(5,150,105,0); }
+    }
+    .b-vol { animation:pulse 2.6s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <h1>Poridhi Multi-Container Architecture</h1>
+  <p class="sub">Browser → Flask web → Redis → named volume &nbsp;·&nbsp; animated arrows show the request/data path</p>
+
+  <div class="diagram">
+    <!-- Cards -->
+    <div class="card b-browser">
+      <span class="title" style="text-align:center">Browser</span>
+      <span class="sub"   style="text-align:center">http://localhost:5000</span>
+    </div>
+
+    <div class="card b-web">
+      <span class="bar bar-blue"></span>
+      <span class="tag">SERVICE</span>
+      <span class="title">web · poridhi-web</span>
+      <span class="sub">Flask + redis-py · host:5000 → container:80</span>
+    </div>
+
+    <div class="card b-redis">
+      <span class="bar bar-red"></span>
+      <span class="tag">SERVICE</span>
+      <span class="title">redis · poridhi-redis</span>
+      <span class="sub">redis:7-alpine · TCP 6379 · AOF → /data</span>
+    </div>
+
+    <div class="card b-vol">
+      <span class="bar bar-green"></span>
+      <span class="tag">VOLUME</span>
+      <span class="title">poridhi-redis-data</span>
+      <span class="sub">Named volume · mounted at /data · persists across restarts</span>
+    </div>
+
+    <div class="card b-net">
+      <span class="title" style="text-align:center">poridhi-net</span>
+      <span class="sub"   style="text-align:center">User-defined bridge · DNS service discovery</span>
+    </div>
+
+    <!-- Animated arrows overlay -->
+    <svg class="arrows" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+        </marker>
+        <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+        </marker>
+        <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+        </marker>
+      </defs>
+
+      <!-- Browser → web -->
+      <line x1="240" y1="125" x2="338" y2="125"
+            stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="289" y="118" text-anchor="middle" font-size="12" fill="#475569" font-weight="600">HTTP</text>
+      <text x="289" y="146" text-anchor="middle" font-size="11" fill="#64748b">host:5000 → web:80</text>
+
+      <!-- web → redis (animated, blue) -->
+      <line x1="530" y1="160" x2="530" y2="228"
+            stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"
+            class="flow"/>
+      <text x="545" y="190" font-size="12" fill="#2563eb" font-weight="600">TCP 6379</text>
+      <text x="545" y="206" font-size="11" fill="#64748b">DNS "redis" → poridhi-redis</text>
+
+      <!-- redis → volume (animated, green) -->
+      <line x1="530" y1="300" x2="530" y2="368"
+            stroke="#059669" stroke-width="2.5" marker-end="url(#arrowGreen)"
+            class="flow-slow"/>
+      <text x="545" y="330" font-size="12" fill="#059669" font-weight="600">AOF write</text>
+      <text x="545" y="346" font-size="11" fill="#64748b">bind mount (managed)</text>
+
+      <!-- Network membership connectors -->
+      <line x1="240" y1="265" x2="338" y2="125"
+            stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="265" x2="338" y2="265"
+            stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="4 4"/>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:#475569"></span>HTTP (browser → web)</span>
+    <span><span class="swatch" style="background:#2563eb"></span>TCP 6379 (animated)</span>
+    <span><span class="swatch" style="background:#059669"></span>AOF write (animated)</span>
+    <span><span class="swatch" style="background:#a5b4fc"></span>Network membership</span>
+  </div>
+</body>
+</html>
