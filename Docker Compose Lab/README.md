@@ -48,6 +48,8 @@ This lab will deploy a small but **real** multi-container application: a Flask w
 
 Using **PUKU CLI** as the primary driver, work as a thin wrapper around the standard `docker` and `docker compose` tooling that adds project-aware shortcuts, friendlier defaults, and one-command workflows.
 
+![Lab Overview](images/overview.svg)
+
 ## Learning Objectives
 By the end of this lab, you will be able to:
 
@@ -75,78 +77,76 @@ Modern DevOps relies on automation. The catch:
 Your task is to turn a complex, multi-step deployment into a single, flawless automated command using PUKU CLI.
 
 ## Environment Setup
-
-## Part 1: System Update
 Update your environment and install required packages:
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
-## Part 2: Install Node.js & npm
+## Part 1: Install Node.js & npm
 Need Nodejs and npm for PUKU CLI
 
-### 2.1 Install Prerequisites :
+### 1.1 Install Prerequisites :
 ```bash
 sudo apt install -y curl upgrade-software-properties apt-transport-https ca-certificates gnupg
 ```
-### 2.2 Download and import the NodeSource GPG key :
+### 1.2 Download and import the NodeSource GPG key :
 ```bash
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 ```
-### 2.3 Create the repository source list :
+### 1.3 Create the repository source list :
 ```bash
 NODE_MAJOR=20
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 ```
-### 2.4 Install NodeJs : 
+### 1.4 Install NodeJs : 
 ```bash
 sudo apt update
 sudo apt install nodejs -y
 ```
-### 2.5 Verify Installation : 
+### 1.5 Verify Installation : 
 ```bash
 node -v
 npm -v
 ```
 
-## Part 3: Install Docker and Docker Compose
-### 3.1 Add Docker's official GPG key : 
+## Part 2: Install Docker and Docker Compose
+### 2.1 Add Docker's official GPG key : 
 ```bash
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 ```
-### 3.2 Set up the Docker Repository : 
+### 2.2 Set up the Docker Repository : 
 ```bash
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   ```
-  ### 3.3 Install Docker and Plugins : 
+  ### 2.3 Install Docker and Plugins : 
   ```bash
   sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 ```
 
-## Part 4: Manage Docker as a Non Root user 
-### 4.1 Create Docker Group : 
+## Part 3: Manage Docker as a Non Root user 
+### 3.1 Create Docker Group : 
 ```bash
 sudo groupadd docker
 ```
-### 4.2 Add Current user to the Docker Group : 
+### 3.2 Add Current user to the Docker Group : 
 ```bash
 sudo usermod -aG docker $USER
 ```
-### 4.3 Update your current Terminal Session : 
+### 3.3 Update your current Terminal Session : 
 ```bash
 newgrp docker
 ```
 
-## Part 5: Installing Puku CLI
-### 5.1 Installation : 
+## Part 4: Installing Puku CLI
+### 4.1 Installation : 
 ```bash
 npm install -g @puku/puku-cli
 ```
-### 5.2 Verify Installation :
+### 4.2 Verify Installation :
 ```bash
 puku --version         
 ```
@@ -164,8 +164,6 @@ If any of them fail, install or update before proceeding:
 ## Chapter 1: Docker Compose (RECAP)
 
 Docker Compose is a tool that simplifies the deployment and management of multi-container Docker applications. Docker Compose is used to deploy a Flask web application alongside a Redis database.
-
----
 
 ## Overview of Docker Compose Architecture
 
@@ -209,8 +207,6 @@ Redis Container (Port 6379)
 Docker Volume
 ```
 
----
-
 ## Dockerfile
 
 The `Dockerfile` contains instructions that Docker follows to build the Flask application image.
@@ -236,7 +232,6 @@ EXPOSE 80                  # documents that the container listens on 80
 
 CMD ["python", "app.py"]   # default start command
 ```
----
 
 ## compose.yml
 
@@ -286,8 +281,6 @@ volumes:
   redis-data:
     name: poridhi-redis-data
 ```
-
----
 
 ## 1.1 Docker Network Overview
 
