@@ -6,15 +6,36 @@
 - [Learning Objectives](#learning-objectives)
 - [Prologue: The Challenge](#prologue-the-challenge)
 - [Environment Setup](#environment-setup)
-- [Chapters](#chapters)
-  - [Chapter 1: Docker Compose Component](#chapter-1-docker-compose-component)
-  - [Chapter 2: Docker Network](#chapter-2-docker-network)
-  - [Chapter 3: Docker Volume](#chapter-3-docker-volume)
-  - [Chapter 4: Application Components](#chapter-4-application-components)
-  - [Chapter 5: Complete Application Workflow](#chapter-5-complete-application-workflow)
-  - [Chapter 6: Deployment and Automation using PUKU CLI](#chapter-6-deployment-and-automation-using-puku-cli)
-  - [Chapter 7: Verifying the End-to-End Behaviour](#chapter-7-verifying-the-end-to-end-behaviour)
-  - [Chapter 8: The Request Lifecycle](#chapter-8-the-request-lifecycle)
+  - [Part 1: System Update](#part-1-system-update)
+  - [Part 2: Install Node.js & npm](#part-2-install-nodejs--npm)
+  - [Part 3: Install Docker and Docker Compose](#part-3-install-docker-and-docker-compose)
+  - [Part 4: Manage Docker as a Non Root user](#part-4-manage-docker-as-a-non-root-user)
+  - [Part 5: Installing Puku CLI](#part-5-installing-puku-cli)
+- [Chapter 1: Docker Compose (RECAP)](#chapter-1-docker-compose-recap)
+  - [Overview of Docker Compose Architecture](#overview-of-docker-compose-architecture)
+  - [Dockerfile](#dockerfile)
+  - [compose.yml](#composeyml)
+  - [1.1 Docker Network Overview](#11-docker-network-overview)
+  - [1.2 Docker Volume Overview](#12-docker-volume-overview)
+  - [1.3 Application Components](#13-application-components)
+- [Chapter 2: Complete Application Workflow](#chapter-2-complete-application-workflow)
+- [Chapter 3: Deployment and Automation using PUKU CLI](#chapter-3-deployment-and-automation-using-puku-cli)
+  - [3.1 What is PUKU CLI?](#31-what-is-puku-cli)
+  - [3.2 Deployment Workflow](#32-deployment-workflow)
+  - [3.3 Verifying PUKU CLI Workspace Context](#33-verifying-puku-cli-workspace-context)
+  - [3.4 Building the Application](#34-building-the-application)
+  - [3.5 Starting the Application](#35-starting-the-application)
+  - [3.6 Running in Detached Mode](#36-running-in-detached-mode)
+  - [3.7 Viewing Running Containers](#37-viewing-running-containers)
+  - [3.8 Viewing Application Logs](#38-viewing-application-logs)
+  - [3.9 Stopping the Application](#39-stopping-the-application)
+  - [3.10 Restarting the Application](#310-restarting-the-application)
+  - [3.11 Removing the Application](#311-removing-the-application)
+  - [3.12 Removing Everything](#312-removing-everything)
+  - [3.13 Deployment Verification](#313-deployment-verification)
+  - [3.14 Summary](#314-summary)
+- [Chapter 4: Verifying the End-to-End Behaviour](#chapter-4-verifying-the-end-to-end-behaviour)
+- [Chapter 5: The Request Lifecycle](#chapter-5-the-request-lifecycle)
 - [Epilogue: The Complete System](#epilogue-the-complete-system)
 - [The Principles](#the-principles)
 - [Troubleshooting](#troubleshooting)
@@ -37,7 +58,7 @@ By the end of this lab, you will be able to:
 5. Operate a Docker Compose stack from the **PUKU CLI**: build, up, logs, exec, down, and recreate.
 6. Map each line of `compose.yaml` to a concrete behaviour you can observe from the terminal.
 
-**Prerequisites:** Familiarity with Docker and basic understanding of containerization
+**Prerequisites:** Familiarity with Docker, Docker Compose and basic understanding of containerization
 
 ## Prologue: The Challenge
 
@@ -140,13 +161,13 @@ If any of them fail, install or update before proceeding:
 
 
 
-## Chapter 1: Docker Compose Component
+## Chapter 1: Docker Compose (RECAP)
 
 Docker Compose is a tool that simplifies the deployment and management of multi-container Docker applications. Docker Compose is used to deploy a Flask web application alongside a Redis database.
 
 ---
 
-## 1.1 Overview of Docker Compose Architecture
+## Overview of Docker Compose Architecture
 
 The application consists of two independent containers that work together:
 
@@ -190,7 +211,7 @@ Docker Volume
 
 ---
 
-## 1.2 Dockerfile
+## Dockerfile
 
 The `Dockerfile` contains instructions that Docker follows to build the Flask application image.
 
@@ -215,189 +236,9 @@ EXPOSE 80                  # documents that the container listens on 80
 
 CMD ["python", "app.py"]   # default start command
 ```
-
-### Explanation
-
-```dockerfile
-# syntax=docker/dockerfile:1
-```
-
-### Purpose
-
-Specifies the Dockerfile syntax version.
-
-### Explanation
-
-- Enables modern Dockerfile features.
-- Ensures compatibility with Docker BuildKit.
-
 ---
 
-```dockerfile
-FROM python:3.11-slim
-```
-
-### Purpose
-
-Selects the base image for the application.
-
-### Explanation
-
-- Uses the official Python 3.11 image.
-- The **slim** variant is lightweight.
-- Includes Python while minimizing unnecessary packages.
-
-This becomes the operating system inside the container.
-
----
-
-```dockerfile
-WORKDIR /app
-```
-
-### Purpose
-
-Sets the working directory inside the container.
-
-### Explanation
-
-After this instruction:
-
-- All following commands execute inside `/app`.
-- If the directory does not exist, Docker automatically creates it.
-
-Directory structure:
-
-```
-/
-└── app/
-```
-
----
-
-```dockerfile
-COPY requirements.txt .
-```
-
-### Purpose
-
-Copies the dependency file into the container.
-
-### Explanation
-
-Only `requirements.txt` is copied first.
-
-This improves Docker layer caching because dependencies only reinstall when this file changes.
-
----
-
-```dockerfile
-RUN pip install --no-cache-dir -r requirements.txt
-```
-
-### Purpose
-
-Installs Python packages.
-
-### Explanation
-
-- Reads all required packages from `requirements.txt`
-- Downloads and installs Flask, Redis, and any other dependencies.
-- `--no-cache-dir` removes pip cache after installation to reduce image size.
-
----
-
-```dockerfile
-COPY app.py .
-```
-
-### Purpose
-
-Copies the Flask application into the image.
-
-### Explanation
-
-After dependencies are installed, only the application source code is copied.
-
-This avoids reinstalling packages every time the application code changes.
-
----
-
-```dockerfile
-RUN useradd -m appuser
-```
-
-### Purpose
-
-Creates a non-root user.
-
-### Explanation
-
-Running applications as root is considered insecure.
-
-This command creates a regular Linux user named:
-
-```
-appuser
-```
-
----
-
-```dockerfile
-USER appuser
-```
-
-### Purpose
-
-Switches the execution user.
-
-### Explanation
-
-All future commands and the running application execute as `appuser` instead of root.
-
-This follows Docker security best practices.
-
----
-
-```dockerfile
-EXPOSE 80
-```
-
-### Purpose
-
-Documents the application's listening port.
-
-### Explanation
-
-This tells Docker that the application listens on port **80** inside the container.
-
-It does **not** publish the port.
-
-Port publishing is handled later by Docker Compose.
-
----
-
-```dockerfile
-CMD ["python", "app.py"]
-```
-
-### Purpose
-
-Defines the default startup command.
-
-### Explanation
-
-Whenever a container starts from this image, Docker automatically executes:
-
-```bash
-python app.py
-```
-
-which launches the Flask application.
-
----
-
-## 1.3 compose.yml
+## compose.yml
 
 The `compose.yml` file defines the complete multi-container application.
 
@@ -448,312 +289,7 @@ volumes:
 
 ---
 
-### Services Section
-
-```yaml
-services:
-```
-
-### Purpose
-
-Defines all containers that belong to the application.
-
-In this project there are two services:
-
-- web
-- redis
-
-Each service becomes its own Docker container.
-
----
-
-### Web Service
-
-```yaml
-web:
-```
-
-Represents the Flask application container.
-
----
-
-### Build
-
-```yaml
-build: .
-```
-
-### Purpose
-
-Builds the Docker image using the Dockerfile in the current directory.
-
-Docker automatically executes every instruction inside the Dockerfile.
-
----
-
-### Image
-
-```yaml
-image: poridhi-flask:latest
-```
-
-### Purpose
-
-Assigns a name to the built image.
-
-Resulting image:
-
-```
-poridhi-flask:latest
-```
-
-This image can later be reused without rebuilding.
-
----
-
-### Container Name
-
-```yaml
-container_name: poridhi-web
-```
-
-### Purpose
-
-Assigns a fixed container name.
-
-Without this option Docker generates random names.
-
-Instead, the container becomes:
-
-```
-poridhi-web
-```
-
----
-
-### Port Mapping
-
-```yaml
-ports:
-  - "5000:80"
-```
-
-### Purpose
-
-Publishes the application to the host machine.
-
-Meaning:
-
-```
-Host Port      Container Port
-5000     --->      80
-```
-
-Users access:
-
-```
-http://localhost:5000
-```
-
-Docker forwards traffic internally to port 80 inside the container.
-
----
-
-### Environment Variables
-
-```yaml
-environment:
-  - NAME=Poridhi Intern
-```
-
-### Purpose
-
-Provides runtime configuration.
-
-Inside the container:
-
-```
-NAME = Poridhi Intern
-```
-
-The Flask application later reads this value using:
-
-```python
-os.getenv("NAME")
-```
-
-Result:
-
-```
-Hello Poridhi Intern!
-```
-
----
-
-### Network
-
-```yaml
-networks:
-  - app-net
-```
-
-### Purpose
-
-Connects the container to the custom Docker bridge network.
-
-Containers connected to the same network can communicate securely using service names instead of IP addresses.
-
----
-
-### Dependency
-
-```yaml
-depends_on:
-  - redis
-```
-
-### Purpose
-
-Controls startup order.
-
-Docker starts:
-
-```
-Redis
-    ↓
-Flask
-```
-
-However, it only ensures that Redis starts first—it does **not** wait until Redis is fully ready to accept connections.
-
----
-
-### Restart Policy
-
-```yaml
-restart: unless-stopped
-```
-
-### Purpose
-
-Automatically restarts the container if it crashes or if Docker restarts.
-
-The container only remains stopped if the user manually stops it.
-
----
-
-### Redis Service
-
-```yaml
-redis:
-```
-
-Defines the Redis database container.
-
----
-
-### Redis Image
-
-```yaml
-image: redis:7-alpine
-```
-
-Uses the official Redis image.
-
-The Alpine variant is lightweight and optimized for small container size.
-
----
-
-### Container Name
-
-```yaml
-container_name: poridhi-redis
-```
-
-Creates a container named:
-
-```
-poridhi-redis
-```
-
----
-
-### Network
-
-```yaml
-networks:
-  - app-net
-```
-
-Connects Redis to the same bridge network as the Flask container.
-
-This allows Flask to communicate with Redis using the hostname:
-
-```
-redis
-```
-
----
-
-### Persistent Storage
-
-```yaml
-volumes:
-  - redis-data:/data
-```
-
-### Purpose
-
-Stores Redis data permanently.
-
-Without this volume:
-
-```
-Container Deleted
-      ↓
-Data Lost
-```
-
-With the volume:
-
-```
-Container Deleted
-      ↓
-Data Preserved
-```
-
-The visit counter survives container recreation.
-
----
-
-### Command
-
-```yaml
-command:
-  ["redis-server", "--appendonly", "yes"]
-```
-
-### Purpose
-
-Starts Redis with Append-Only File (AOF) persistence enabled.
-
-Instead of keeping data only in memory, every write operation is recorded on disk.
-
-This improves durability and helps recover data after a restart.
-
----
-
-### Restart Policy
-
-```yaml
-restart: unless-stopped
-```
-
-Automatically restarts Redis if it unexpectedly stops.
-
----
-
-## Chapter 2: Docker Network
+## 1.1 Docker Network Overview
 
 ```yaml
 networks:
@@ -794,7 +330,7 @@ This makes the network easier to identify and reuse.
 
 ---
 
-## Chapter 3: Docker Volume
+## 1.2 Docker Volume Overview
 
 ```yaml
 volumes:
@@ -819,7 +355,7 @@ This ensures that application data such as the visit counter is preserved across
 
 ---
 
-## Chapter 4: Application Components
+## 1.3 Application Components
 
 The Flask application handles incoming HTTP requests and communicates with the Redis service to maintain a persistent page visit counter.
 
@@ -865,175 +401,7 @@ if __name__ == "__main__":
 
 ---
 
-## 4.1 Import Statements
-
-```python
-import os
-import socket
-from flask import Flask
-from redis import Redis, RedisError
-```
-
-### Explanation
-
-These modules provide the functionality required by the application:
-
-- `os` reads environment variables.
-- `socket` retrieves the container's hostname.
-- `Flask` creates the web application.
-- `Redis` connects to the Redis server.
-- `RedisError` handles Redis connection failures.
-
----
-
-## 4.2 Create Flask Application
-
-```python
-app = Flask(__name__)
-```
-
-Creates a Flask application instance.
-
-All routes and configurations are registered with this application object.
-
----
-
-## 4.3 Redis Connection
-
-```python
-redis = Redis(
-    host="redis",
-    port=6379,
-    socket_connect_timeout=2
-)
-```
-
-### Explanation
-
-Creates a Redis client.
-
-Parameters:
-
-| Parameter | Description |
-|-----------|-------------|
-| host="redis" | Uses the Docker Compose service name as the hostname. Docker's internal DNS automatically resolves `redis` to the Redis container's IP address. |
-| port=6379 | Default Redis server port. |
-| socket_connect_timeout=2 | Waits a maximum of 2 seconds before reporting a connection failure. |
-
-No hard-coded IP address is required because Docker Compose provides automatic service discovery.
-
----
-
-## 4.4 Root Route
-
-```python
-@app.route("/")
-```
-
-Registers the application's home page.
-
-Whenever a user visits:
-
-```
-http://localhost:5000/
-```
-
-Flask executes the `hello()` function.
-
----
-
-## 4.5 Visit Counter
-
-```python
-visits = redis.incr("counter")
-```
-
-The `INCR` command increases the value of the Redis key named `counter` by one every time the page is visited.
-
-Example:
-
-```
-First Visit  → 1
-Second Visit → 2
-Third Visit  → 3
-```
-
----
-
-## 4.6 Exception Handling
-
-```python
-except RedisError:
-```
-
-If Redis is unavailable, the application does not terminate.
-
-Instead, it displays a message indicating that the counter is disabled while continuing to serve the webpage. This improves the application's reliability and user experience.
-
----
-
-## 4.7 HTML Response
-
-```python
-html = (
-    "<h3>Hello {name}!</h3>"
-    "<b>Hostname:</b> {hostname}<br/>"
-    "<b>Visits:</b> {visits}"
-)
-```
-
-Creates a simple HTML template that displays:
-
-- Greeting message
-- Container hostname
-- Current visit count
-
-The placeholders are replaced with actual values before the response is returned.
-
----
-
-## 4.8 Reading Environment Variables
-
-```python
-name = os.getenv("NAME", "world")
-```
-
-Reads the `NAME` environment variable supplied by Docker Compose.
-
-If the variable is not defined, the default value `"world"` is used.
-
-This allows the greeting message to be customized without modifying the application code.
-
----
-
-## 4.9 Container Hostname
-
-```python
-socket.gethostname()
-```
-
-Retrieves the hostname of the running container.
-
-Since each Docker container has its own hostname, this helps identify which container handled the request.
-
----
-
-## 4.10 Running the Flask Server
-
-```python
-app.run(host="0.0.0.0", port=80)
-```
-
-Starts the Flask development server.
-
-- `host="0.0.0.0"` binds the application to all network interfaces, making it accessible from outside the container.
-- `port=80` configures the application to listen on port 80 inside the container.
-
-This internal port is exposed to users through Docker Compose using the mapping `5000:80`.
-
----
-
-## Chapter 5: Complete Application Workflow
+## Chapter 2: Complete Application Workflow
 
 The execution flow of the application is as follows:
 
@@ -1047,7 +415,7 @@ The execution flow of the application is as follows:
 8. Flask reads the environment variable `NAME`, retrieves the container hostname, and generates an HTML response showing the greeting, hostname, and visit count.
 9. The response is sent back to the user's browser. Because Redis uses a persistent Docker volume, the visit counter remains available even if the containers are restarted.
 
-## Chapter 6: Deployment and Automation using PUKU CLI
+## Chapter 3: Deployment and Automation using PUKU CLI
 
 Deploying and managing Docker applications can involve building images, creating networks, starting containers, checking logs, and cleaning up resources.
 
@@ -1057,7 +425,7 @@ In this project, PUKU CLI is used to automate the deployment of the Flask and Re
 
 ---
 
-## 6.1 What is PUKU CLI?
+## 3.1 What is PUKU CLI?
 
 PUKU CLI is a command-line tool that simplifies Docker container management by providing easy-to-use commands for common Docker Compose operations.
 
@@ -1076,14 +444,14 @@ Some advantages of using PUKU CLI include:
 - Makes container management easier for beginners.
 ---
 
-## 6.2 Deployment Workflow
+## 3.2 Deployment Workflow
 
 The deployment process follows several sequential steps.
 
-![Poridhi deployment workflow (animated)](images/deployment-workflow.svg)
+![Poridhi deployment workflow (animated)](images/deployment_workflow.svg)
 ---
 
-## 6.3 Verifying PUKU CLI Workspace Context
+## 3.3 Verifying PUKU CLI Workspace Context
 
 Before using PUKU CLI to automate deployment tasks, it is important to verify that the CLI has access to the correct project directory and understands the current workspace. This initial verification helps ensure that PUKU CLI is operating on the intended project and reduces the risk of executing automation commands in the wrong location.
 
@@ -1121,7 +489,7 @@ Performing this verification before deployment provides several advantages:
 ---
 
 
-## 6.4 Building the Application
+## 3.4 Building the Application
 
 Before the application can be executed, Docker must build the Flask image using the Dockerfile.
 
@@ -1147,7 +515,7 @@ After completion, the application image is stored locally and is ready to be exe
 ![docker compose --build](images/Expected_Build.png)
 ---
 
-## 6.5 Starting the Application
+## 3.5 Starting the Application
 
 Once the image has been built, the complete application can be started using:
 
@@ -1176,7 +544,7 @@ http://localhost:5000
 
 ---
 
-## 6.6 Running in Detached Mode
+## 3.6 Running in Detached Mode
 
 For long-running applications, containers are typically executed in detached mode.
 
@@ -1198,7 +566,7 @@ Benefits include:
 ![Docker compose up -d](images/Expected_upD.png)
 ---
 
-## 6.7 Viewing Running Containers
+## 3.7 Viewing Running Containers
 
 To verify that the application is running correctly, execute:
 
@@ -1220,7 +588,7 @@ This command displays:
 ![docker compose ps](images/Expected_Ps.png)
 ---
 
-## 6.8 Viewing Application Logs
+## 3.8 Viewing Application Logs
 
 Application logs help monitor runtime activity and troubleshoot issues.
 
@@ -1246,7 +614,7 @@ Logs are useful for verifying that services have started successfully.
 ![docker compose logs](images/Expected_Logs.png)
 ---
 
-## 6.9 Stopping the Application
+## 3.9 Stopping the Application
 
 To stop all running containers without deleting them:
 
@@ -1264,7 +632,7 @@ The containers remain available and can later be restarted without rebuilding.
 ![docker compose stop](images/Expected_stop.png)
 ---
 
-## 6.10 Restarting the Application
+## 3.10 Restarting the Application
 
 To restart previously stopped containers:
 
@@ -1282,7 +650,7 @@ No image rebuild is required.
 ![docker compose start](images/Expected_start.png)
 ---
 
-## 6.11 Removing the Application
+## 3.11 Removing the Application
 
 When the application is no longer needed, all containers can be removed using:
 
@@ -1304,7 +672,7 @@ However, the Docker volume remains intact, so Redis data is preserved.
 ![docker compose down --volumes](images/Expected_Down.png)
 ---
 
-## 6.12 Removing Everything
+## 3.12 Removing Everything
 
 To completely remove the deployment, including persistent storage:
 
@@ -1326,7 +694,7 @@ Since the Redis volume is deleted, all stored visit-counter data is permanently 
 ![docker compose down --volumes](images/Expected_remove.png)
 ---
 
-## 6.13 Deployment Verification
+## 3.13 Deployment Verification
 
 After deployment, the application can be verified using the following checklist:
 
@@ -1343,11 +711,11 @@ After deployment, the application can be verified using the following checklist:
 ![LocalHost View](images/localhost_view.png)
 ---
 
-## 6.14 Summary
+## 3.14 Summary
 
 PUKU CLI streamlines the deployment and management of Docker Compose applications by automating common Docker operations. In this project, it simplifies building images, creating networks and volumes, starting services, monitoring containers, viewing logs, and cleaning up resources. By using a small set of intuitive commands, developers can deploy and manage the entire Flask–Redis application efficiently while maintaining a consistent and reliable workflow.
 
-## Chapter 7: Verifying the End-to-End Behaviour
+## Chapter 4: Verifying the End-to-End Behaviour
 
 1. Open <http://localhost:5000> in a browser. You should see "Hello Poridhi Intern!" plus a visit count.
 2. Refresh a few times. The visit count should tick up.
@@ -1358,7 +726,7 @@ PUKU CLI streamlines the deployment and management of Docker Compose application
 
 > If any step fails, jump to *Troubleshooting* below before continuing.
 
-## Chapter 8: The Request Lifecycle
+## Chapter 5: The Request Lifecycle
 
 When a browser hits `http://localhost:5000/`:
 
