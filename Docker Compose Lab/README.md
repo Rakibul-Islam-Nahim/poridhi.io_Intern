@@ -6,18 +6,18 @@
 - [Learning Objectives](#learning-objectives)
 - [Prologue: The Challenge](#prologue-the-challenge)
 - [Environment Setup](#environment-setup)
-  - [Part 1: System Update](#part-1-system-update)
-  - [Part 2: Install Node.js & npm](#part-2-install-nodejs--npm)
-  - [Part 3: Install Docker and Docker Compose](#part-3-install-docker-and-docker-compose)
-  - [Part 4: Manage Docker as a Non Root user](#part-4-manage-docker-as-a-non-root-user)
-  - [Part 5: Installing Puku CLI](#part-5-installing-puku-cli)
+  - [Part 1: Verify Installation](#part-1-verify-installation-)
+  - [Part 2: Manage Docker as a Non Root user](#part-2-manage-docker-as-a-non-root-user)
+    - [2.1 Create Docker Group](#21-create-docker-group-)
+    - [2.2 Add Current user to the Docker Group](#22-add-current-user-to-the-docker-group-)
+    - [2.3 Update your current Terminal Session](#23-update-your-current-terminal-session-)
 - [Chapter 1: Docker Compose (RECAP)](#chapter-1-docker-compose-recap)
   - [Overview of Docker Compose Architecture](#overview-of-docker-compose-architecture)
   - [Dockerfile](#dockerfile)
-  - [compose.yml](#composeyml)
-  - [1.1 Docker Network Overview](#11-docker-network-overview)
-  - [1.2 Docker Volume Overview](#12-docker-volume-overview)
-  - [1.3 Application Components](#13-application-components)
+  - [docker-compose.yml](#docker-composeyml)
+  - [Docker Network Overview](#docker-network-overview)
+  - [Docker Volume Overview](#docker-volume-overview)
+  - [Application Components](#application-components)
 - [Chapter 2: Complete Application Workflow](#chapter-2-complete-application-workflow)
 - [Chapter 3: Deployment and Automation using PUKU CLI](#chapter-3-deployment-and-automation-using-puku-cli)
   - [3.1 What is PUKU CLI?](#31-what-is-puku-cli)
@@ -60,7 +60,14 @@ By the end of this lab, you will be able to:
 5. Operate a Docker Compose stack from the **PUKU CLI**: build, up, logs, exec, down, and recreate.
 6. Map each line of `compose.yaml` to a concrete behaviour you can observe from the terminal.
 
-**Prerequisites:** Familiarity with Docker, Docker Compose and basic understanding of containerization
+**Prerequisites:** Familiarity with Docker, Docker Compose and basic understanding of containerization.
+
+Make sure the following are installed on your system:
+
+- **Docker** installed
+- **Docker Compose** installed
+- **Node.js** installed
+- **PUKU CLI** installed
 
 ## Prologue: The Challenge
 
@@ -81,75 +88,33 @@ Update your environment and install required packages:
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
-## Part 1: Install Node.js & npm
-Need Nodejs and npm for PUKU CLI
-
-### 1.1 Install Prerequisites :
+## Part 1: Verify Installation :
+PUKU CLI Verification
 ```bash
-sudo apt install -y curl upgrade-software-properties apt-transport-https ca-certificates gnupg
+puku --version         
 ```
-### 1.2 Download and import the NodeSource GPG key :
+---
+Docker and Docker Compose Verification
 ```bash
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-```
-### 1.3 Create the repository source list :
-```bash
-NODE_MAJOR=20
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-```
-### 1.4 Install NodeJs : 
-```bash
-sudo apt update
-sudo apt install nodejs -y
-```
-### 1.5 Verify Installation : 
-```bash
-node -v
-npm -v
+docker --version
+docker compose version
 ```
 
-## Part 2: Install Docker and Docker Compose
-### 2.1 Add Docker's official GPG key : 
-```bash
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-```
-### 2.2 Set up the Docker Repository : 
-```bash
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  ```
-  ### 2.3 Install Docker and Plugins : 
-  ```bash
-  sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-```
-
-## Part 3: Manage Docker as a Non Root user 
-### 3.1 Create Docker Group : 
+## Part 2: Manage Docker as a Non Root user 
+### 2.1 Create Docker Group : 
 ```bash
 sudo groupadd docker
 ```
-### 3.2 Add Current user to the Docker Group : 
+### 2.2 Add Current user to the Docker Group : 
 ```bash
 sudo usermod -aG docker $USER
 ```
-### 3.3 Update your current Terminal Session : 
+### 2.3 Update your current Terminal Session : 
 ```bash
 newgrp docker
 ```
 
-## Part 4: Installing Puku CLI
-### 4.1 Installation : 
-```bash
-npm install -g @puku/puku-cli
-```
-### 4.2 Verify Installation :
-```bash
-puku --version         
-```
+
 
 If any of them fail, install or update before proceeding:
 
@@ -233,9 +198,9 @@ EXPOSE 80                  # documents that the container listens on 80
 CMD ["python", "app.py"]   # default start command
 ```
 
-## compose.yml
+## docker-compose.yml
 
-The `compose.yml` file defines the complete multi-container application.
+The `docker-compose.yml` file defines the complete multi-container application.
 
 ```yaml
 services:
@@ -282,7 +247,7 @@ volumes:
     name: poridhi-redis-data
 ```
 
-## 1.1 Docker Network Overview
+## Docker Network Overview
 
 ```yaml
 networks:
@@ -323,7 +288,7 @@ This makes the network easier to identify and reuse.
 
 ---
 
-## 1.2 Docker Volume Overview
+## Docker Volume Overview
 
 ```yaml
 volumes:
@@ -348,7 +313,7 @@ This ensures that application data such as the visit counter is preserved across
 
 ---
 
-## 1.3 Application Components
+## Application Components
 
 The Flask application handles incoming HTTP requests and communicates with the Redis service to maintain a persistent page visit counter.
 
@@ -360,9 +325,6 @@ from redis import Redis, RedisError
 
 app = Flask(__name__)
 
-# "redis" is the SERVICE NAME from compose.yaml.
-# Docker's embedded DNS on the user-defined network resolves it
-# to the redis container's IP — no hard-coded host needed.
 redis = Redis(host="redis", port=6379, socket_connect_timeout=2)
 
 
@@ -371,7 +333,6 @@ def hello():
     try:
         visits = redis.incr("counter")
     except RedisError:
-        # Back-end is down? Still serve the page so the demo keeps working.
         visits = "<i>could not connect to Redis, counter disabled</i>"
 
     html = (
@@ -388,7 +349,6 @@ def hello():
 
 
 if __name__ == "__main__":
-    # Bind to 0.0.0.0 so the container's port 80 is reachable from the host.
     app.run(host="0.0.0.0", port=80)
 ```
 
@@ -461,7 +421,7 @@ This prompt encourages PUKU CLI to:
 - Read the contents of the current working directory.
 - Identify important project files such as:
   - `Dockerfile`
-  - `compose.yml`
+  - `docker-compose.yml`
   - `app.py`
   - `requirements.txt`
 - Infer the purpose of the project from the available files.
